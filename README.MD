@@ -14,7 +14,7 @@ To run the docker image execute:
 
 To run unit tests inside the container execute:
 
-docker run minitwit python setup.py test
+`docker run minitwit python setup.py test`
 
 ## Original Readme
 
