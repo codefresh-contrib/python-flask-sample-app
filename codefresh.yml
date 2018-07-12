@@ -1,0 +1,25 @@
+version: '1.0'
+steps:
+  BuildingDockerImage:
+    title: Building Docker Image
+    type: build
+    image_name: kostis-codefresh/python-flask-sampleapp
+    working_directory: ./
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    dockerfile: Dockerfile
+  # Requires importing of shared configuration for the private Helm repository
+  StoreChart: 
+    title: Storing Helm chart
+    image: 'codefresh/cfstep-helm:2.9.1'
+    environment:
+      - ACTION=push
+      - CHART_REF=charts/python
+  DeployMyChart:
+    image: 'codefresh/cfstep-helm:2.9.1'
+    title: Deploying Helm chart
+    environment:
+      - CHART_REF=charts/python
+      - RELEASE_NAME=mypython-chart-prod
+      - KUBE_CONTEXT=myDemoAKSCluster
+      - VALUE_image_pullPolicy=Always
+      - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
