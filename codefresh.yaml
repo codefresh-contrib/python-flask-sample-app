@@ -3,34 +3,24 @@ steps:
   BuildingDockerImage:
     title: Building Docker Image
     type: build
-    image_name: adrian256/pythonflasksampleapp
+    image_name: adrian256/python-flask-sampleapp
     working_directory: ./
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     dockerfile: Dockerfile
-  RunningUnitTests:
-    title: Running Unit Tests
-    image: '${{BuildingDockerImage}}'
-    working_directory: IMAGE_WORK_DIR
-    entry_point:
-    - /bin/sh
-    - /codefresh/volume/cf-generated/unit_test_script
-    create_file:
-      path: /codefresh/volume/cf-generated
-      name: unit_test_script
-      content: ' python setup.py test'
-    on_success:
-      metadata:
-        set:
-        - '${{BuildingDockerImage.imageId}}':
-          - CF_QUALITY: true
-    on_fail:
-      metadata:
-        set:
-        - '${{BuildingDockerImage.imageId}}':
-          - CF_QUALITY: false
-  PushingToDockerRegistry:
-    title: Pushing to Docker Registry
-    type: push
-    candidate: '${{BuildingDockerImage}}'
-    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-    registry: cfcr
+  StoreChart:
+    title: Storing Helm chart
+    image: 'codefresh/cfstep-helm:2.9.1'
+    environment:
+    - ACTION=push
+    - CHART_REF=charts/python
+  DeployMyChart:
+    image: 'codefresh/cfstep-helm:2.9.1'
+    title: Deploying Helm chart
+    environment:
+    - CHART_NAME=${{HELM_CHART_NAME}}
+    - RELEASE_NAME=${{HELM_RELEASE_NAME}}
+    - KUBE_CONTEXT=${{KUBE_CONTEXT}}
+    - NAMESPACE=${{KUBE_NAMESPACE}}
+    - custom_image_pullPolicy=Always
+    - custom_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    - custom_image_pullSecret=${{KUBE_PULL_SECRET}}
