@@ -1,0 +1,5 @@
+.eggs
+.pytest_cache/
+minitwit.egg-info
+tests
+minitwit

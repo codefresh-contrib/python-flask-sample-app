@@ -1,0 +1,36 @@
+version: '1.0'
+steps:
+  BuildingDockerImage:
+    title: Building Docker Image
+    type: build
+    image_name: adrian256/pythonflasksampleapp
+    working_directory: ./
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    dockerfile: Dockerfile
+  RunningUnitTests:
+    title: Running Unit Tests
+    image: '${{BuildingDockerImage}}'
+    working_directory: IMAGE_WORK_DIR
+    entry_point:
+    - /bin/sh
+    - /codefresh/volume/cf-generated/unit_test_script
+    create_file:
+      path: /codefresh/volume/cf-generated
+      name: unit_test_script
+      content: ' python setup.py test'
+    on_success:
+      metadata:
+        set:
+        - '${{BuildingDockerImage.imageId}}':
+          - CF_QUALITY: true
+    on_fail:
+      metadata:
+        set:
+        - '${{BuildingDockerImage.imageId}}':
+          - CF_QUALITY: false
+  PushingToDockerRegistry:
+    title: Pushing to Docker Registry
+    type: push
+    candidate: '${{BuildingDockerImage}}'
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    registry: cfcr
