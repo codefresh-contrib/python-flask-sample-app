@@ -17,10 +17,10 @@ steps:
     image: 'codefresh/cfstep-helm:2.9.1'
     title: Deploying Helm chart
     environment:
-    - CHART_NAME=${{HELM_CHART_NAME}}
+    - CHART_REF=${{HELM_CHART_NAME}}
     - RELEASE_NAME=${{HELM_RELEASE_NAME}}
     - KUBE_CONTEXT=${{KUBE_CONTEXT}}
     - NAMESPACE=${{KUBE_NAMESPACE}}
-    - custom_image_pullPolicy=Always
-    - custom_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-    - custom_image_pullSecret=${{KUBE_PULL_SECRET}}
+    - VALUE_image_pullPolicy=Always
+    - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    - VALUE_image_pullSecret=${{KUBE_PULL_SECRET}}
