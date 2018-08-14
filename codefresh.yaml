@@ -13,13 +13,24 @@ steps:
     environment:
     - ACTION=push
     - CHART_REF=charts/python
-  DeployMyChart:
+  DeployToStaging:
     image: 'codefresh/cfstep-helm:2.9.1'
-    title: Deploying Helm chart
+    title: Deploying to stagin
     environment:
     - CHART_REF=${{HELM_CHART_NAME}}
     - RELEASE_NAME=${{HELM_RELEASE_NAME}}
-    - KUBE_CONTEXT=${{KUBE_CONTEXT}}
+    - KUBE_CONTEXT=${{KUBE_CONTEXT_STAGING}}
+    - NAMESPACE=${{KUBE_NAMESPACE}}
+    - VALUE_image_pullPolicy=Always
+    - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    - VALUE_image_pullSecret=${{KUBE_PULL_SECRET}}
+  DeployToProd:
+    image: 'codefresh/cfstep-helm:2.9.1'
+    title: Deploying to prod
+    environment:
+    - CHART_REF=${{HELM_CHART_NAME}}
+    - RELEASE_NAME=${{HELM_RELEASE_NAME}}
+    - KUBE_CONTEXT=${{KUBE_CONTEXT_PROD}}
     - NAMESPACE=${{KUBE_NAMESPACE}}
     - VALUE_image_pullPolicy=Always
     - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
