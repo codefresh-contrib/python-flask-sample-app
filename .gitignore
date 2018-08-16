@@ -3,3 +3,5 @@
 minitwit.egg-info
 tests
 minitwit
+.build-harness
+build-harness/
