@@ -17,6 +17,7 @@ steps:
       set:
         - CF_QUALITY: true
         - progress: 80%
+        - url: ${{CF_COMMIT_URL}}
 
   MyUnitTests: 
     title: Running Unit tests 
