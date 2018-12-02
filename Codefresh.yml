@@ -30,5 +30,5 @@ steps:
     stage: push
     description: Push to docker registry
     candidate: ${{BuildingDockerImage}}
-    tag: ${{CF_BRANCH}}
+    tag: ${{CF_BRANCH_TAG_NORMALIZED}}
     registry: dockerhub
