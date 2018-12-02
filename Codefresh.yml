@@ -16,6 +16,7 @@ steps:
     metadata:
       set:
         - CF_QUALITY: true
+        - progress: 80%
 
   MyUnitTests: 
     title: Running Unit tests 
