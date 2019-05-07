@@ -3,7 +3,7 @@ steps:
   BuildingDockerImage:
     title: Building Docker Image
     type: build
-    image_name: kostis-codefresh/python-flask-sampleapp
+    image_name: python-flask-sampleapp
     working_directory: ./
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     dockerfile: Dockerfile
