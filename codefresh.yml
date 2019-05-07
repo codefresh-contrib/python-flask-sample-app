@@ -8,6 +8,13 @@ steps:
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     dockerfile: Dockerfile
   # Requires importing of shared configuration for the private Helm repository
+  PushingToDockerRegistry:
+    stage: deploy
+    title: Pushing to Docker Registry
+    type: push
+    candidate: '${{BuildingDockerImage}}'
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+    registry: cfcr
   StoreChart: 
     title: Storing Helm chart
     image: 'codefresh/cfstep-helm:2.9.1'
