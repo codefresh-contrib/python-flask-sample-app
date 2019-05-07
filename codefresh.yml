@@ -24,7 +24,7 @@ steps:
       branch:
         only:
         - with-helm
-    service: py
+    service: python
     candidate:
      image: '${{BuildingDockerImage}}'
      registry: cfcr   
