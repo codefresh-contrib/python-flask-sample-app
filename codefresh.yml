@@ -20,6 +20,7 @@ steps:
     environment:
       - CHART_REF=charts/python
       - RELEASE_NAME=mypython-chart-prod
-      - KUBE_CONTEXT=myDemoAKSCluster
+      - KUBE_CONTEXT=otus-platform-qa-env
+      - NAMESPACE=helm
       - VALUE_image_pullPolicy=Always
       - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
