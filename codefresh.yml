@@ -9,7 +9,6 @@ steps:
     dockerfile: Dockerfile
   # Requires importing of shared configuration for the private Helm repository
   PushingToDockerRegistry:
-    stage: deploy
     title: Pushing to Docker Registry
     type: push
     candidate: '${{BuildingDockerImage}}'
