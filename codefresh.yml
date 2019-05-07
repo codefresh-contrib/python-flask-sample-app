@@ -14,20 +14,20 @@ steps:
     candidate: '${{BuildingDockerImage}}'
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
     registry: cfcr
-  # RunningDeployScript:
-  #   title: Running Deploy Script
-  #   type: deploy
-  #   kind: kubernetes
-  #   cluster: otus-platform-dev-env
-  #   namespace: helm
-  #   when:
-  #     branch:
-  #       only:
-  #       - with-helm
-  #   service: py
-  #   candidate:
-  #    image: '${{BuildingDockerImage}}'
-  #    registry: cfcr   
+  RunningDeployScript:
+    title: Running Deploy Script
+    type: deploy
+    kind: kubernetes
+    cluster: otus-platform-dev-env
+    namespace: helm
+    when:
+      branch:
+        only:
+        - with-helm
+    service: py
+    candidate:
+     image: '${{BuildingDockerImage}}'
+     registry: cfcr   
   StoreChart: 
     title: Storing Helm chart
     image: 'codefresh/cfstep-helm:2.9.1'
