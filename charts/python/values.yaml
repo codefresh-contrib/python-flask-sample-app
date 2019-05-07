@@ -5,7 +5,8 @@ replicaCount: 1
 image:
   pullPolicy: IfNotPresent
   repository:  r.cfcr.io/eearleyotus/python-flask-sampleapp
-  tag: with-helm
+  tag: latest
+  pullSecret: cfcr
 service:
   name: python
   type: LoadBalancer
