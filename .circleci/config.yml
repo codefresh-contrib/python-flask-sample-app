@@ -60,7 +60,6 @@ jobs:
 
 workflows:
   version: 2
-
   deploy:
     jobs:
       # note: this step only runs on prod and staging branches.
