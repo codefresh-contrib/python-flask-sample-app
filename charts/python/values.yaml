@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   pullPolicy: IfNotPresent
   repository:  r.cfcr.io/eearleyotus/python-flask-sampleapp
-  tag: with-helm-438704f
+  tag: latest
   pullSecret: cfcr
 service:
   name: python
