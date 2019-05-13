@@ -1,8 +1,6 @@
 version: 2
 
 jobs:
-  build_and_test:
-    # ... insert your test suite here
 
   docker_push:
     # Build app container and push it to the GCR registry
