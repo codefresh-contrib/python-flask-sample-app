@@ -60,17 +60,7 @@ jobs:
 
 workflows:
   version: 2
-  build_and_test:
-    jobs:
-      # note: skip tests on prod and staging branches.
-      # This assumes your workflow ensures that tests pass in the dev branch
-      # before the code is promoted to staging.
-      - build_and_test:
-          filters:
-            branches:
-              ignore:
-                - prod
-                - staging
+
   deploy:
     jobs:
       # note: this step only runs on prod and staging branches.
