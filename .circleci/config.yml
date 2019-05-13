@@ -1,22 +1,92 @@
-version: 2.0
+version: 2
+
 jobs:
- build:
-   # pre-built images: https://circleci.com/docs/2.0/circleci-images/
-   docker:
-     - image: circleci/node:10-browsers
-   steps:
-     - checkout
-     - run:
-         name: The First Step
-         command: |
-           echo 'Hello World!'
-           echo 'This is the delivery pipeline'
-     - run:
-         name: Code Has Arrived
-         command: |
-           ls -al
-           echo '^^^That should look familiar^^^'
-     - run:
-         name: Running in a Unique Container
-         command: |
-           node -v
+  build_and_test:
+    # ... insert your test suite here
+
+  docker_push:
+    # Build app container and push it to the GCR registry
+    # Note: we want to build and push an image with tags based on both
+    # the Git commit hash AND the branch name. This way, we can refer to
+    # images by commit (which is immutable) or branch name (which
+    # dynamically tracks the latest build for each branch).
+    docker:
+      - image: bayesimpact/circleci
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Authenticate with GCR
+          command: |
+            echo "${GCR_DOCKER_REGISTRY_PASSWORD}" | docker login -u _json_key --password-stdin https://gcr.io
+      - run:
+          name: Build app image
+          command: |
+            docker build --rm=false \
+            -t gcr.io/${GCR_PROJECT}/myapp:${CIRCLE_SHA1} \
+            -t gcr.io/${GCR_PROJECT}/myapp:${CIRCLE_BRANCH} \
+            -f ./Dockerfile .
+      - run:
+          name: Push app image
+          command: |
+            docker push gcr.io/${GCR_PROJECT}/myapp:${CIRCLE_SHA1}
+            docker push gcr.io/${GCR_PROJECT}/myapp:${CIRCLE_BRANCH}
+
+  kubernetes_deploy:
+    # Update the existing Kubernetes deployment to point to the new image
+    docker:
+      - image: google/cloud-sdk:alpine
+    working_directory: ~/repo
+    steps:
+      - run:
+          name: Deploy the current commit on this branch to the GKE cluster
+          command: |
+            gcloud components install kubectl
+            echo "${GKE_CD_SERVICE_ACCOUNT_KEY}" > .key.json
+            gcloud auth activate-service-account --key-file .key.json
+            gcloud config set compute/zone "${GKE_ZONE}"
+            gcloud config set project "${GKE_PROJECT}"
+            gcloud container clusters get-credentials "${GKE_CLUSTER}" --zone "${GKE_ZONE}"
+
+            if [ "${CIRCLE_BRANCH}" == "prod" ]; then
+                DEPLOYMENT_PREFIX="production"
+            elif [ "${CIRCLE_BRANCH}" == "staging" ]; then
+                DEPLOYMENT_PREFIX="staging"
+            else
+                echo "unknown branch ${CIRCLE_BRANCH}"
+                exit 1
+            fi
+
+            kubectl set image deployment/${DEPLOYMENT_PREFIX}-app ${DEPLOYMENT_PREFIX}-app=gcr.io/${GCR_PROJECT}/myapp:${CIRCLE_SHA1}
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      # note: skip tests on prod and staging branches.
+      # This assumes your workflow ensures that tests pass in the dev branch
+      # before the code is promoted to staging.
+      - build_and_test:
+          filters:
+            branches:
+              ignore:
+                - prod
+                - staging
+  deploy:
+    jobs:
+      # note: this step only runs on prod and staging branches.
+      - docker_push:
+          filters:
+            branches:
+              only:
+                - prod
+                - staging
+      - kubernetes_deploy:
+          filters:
+            branches:
+              only:
+                - prod
+                - staging
+          requires:
+            - docker_push
