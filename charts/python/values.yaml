@@ -6,7 +6,7 @@ image:
   pullPolicy: IfNotPresent
   repository:  r.cfcr.io/eearleyotus/python-flask-sampleapp
   tag: with-helm
-  pullSecret: cfcr
+  # pullSecret: cfcr
 service:
   name: python
   type: LoadBalancer
