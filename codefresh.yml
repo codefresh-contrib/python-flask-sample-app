@@ -28,6 +28,7 @@ steps:
     candidate:
      image: '${{BuildingDockerImage}}'
      registry: cfcr   
+  #     
   # StoreChart: 
   #   title: Storing Helm chart
   #   image: 'codefresh/cfstep-helm:2.9.1'
