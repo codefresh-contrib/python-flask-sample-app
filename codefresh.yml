@@ -14,33 +14,33 @@ steps:
     candidate: '${{BuildingDockerImage}}'
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
     registry: cfcr
-  # RunningDeployScript:
-  #   title: Running Deploy Script
-  #   type: deploy
-  #   kind: kubernetes
-  #   cluster: otus-platform-dev-env
-  #   namespace: helm
-  #   when:
-  #     branch:
-  #       only:
-  #       - with-helm
-  #   service: python
-  #   candidate:
-  #    image: '${{BuildingDockerImage}}'
-  #    registry: cfcr   
-  StoreChart: 
-    title: Storing Helm chart
-    image: 'codefresh/cfstep-helm:2.9.1'
-    environment:
-      - ACTION=push
-      - CHART_REF=charts/python
-  DeployMyChart:
-    image: 'codefresh/cfstep-helm:2.9.1'
-    title: Deploying Helm chart
-    environment:
-      - CHART_REF=charts/python
-      - RELEASE_NAME=mypython-chart-prod
-      - KUBE_CONTEXT=otus-platform-dev-env
-      - NAMESPACE=default
-      - VALUE_image_pullPolicy=Always
-      - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+  RunningDeployScript:
+    title: Running Deploy Script
+    type: deploy
+    kind: kubernetes
+    cluster: otus-platform-dev-env
+    namespace: otus-web
+    when:
+      branch:
+        only:
+        - with-helm
+    service: python
+    candidate:
+     image: '${{BuildingDockerImage}}'
+     registry: cfcr   
+  # StoreChart: 
+  #   title: Storing Helm chart
+  #   image: 'codefresh/cfstep-helm:2.9.1'
+  #   environment:
+  #     - ACTION=push
+  #     - CHART_REF=charts/python
+  # DeployMyChart:
+  #   image: 'codefresh/cfstep-helm:2.9.1'
+  #   title: Deploying Helm chart
+  #   environment:
+  #     - CHART_REF=charts/python
+  #     - RELEASE_NAME=mypython-chart-prod
+  #     - KUBE_CONTEXT=otus-platform-dev-env
+  #     - NAMESPACE=default
+  #     - VALUE_image_pullPolicy=Always
+  #     - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
