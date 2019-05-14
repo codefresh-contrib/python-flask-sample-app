@@ -29,12 +29,12 @@ steps:
      image: '${{BuildingDockerImage}}'
      registry: cfcr   
   #     
-  # StoreChart: 
-  #   title: Storing Helm chart
-  #   image: 'codefresh/cfstep-helm:2.9.1'
-  #   environment:
-  #     - ACTION=push
-  #     - CHART_REF=charts/python
+  StoreChart: 
+    title: Storing Helm chart
+    image: 'codefresh/cfstep-helm:2.9.1'
+    environment:
+      - ACTION=push
+      - CHART_REF=charts/python
   # DeployMyChart:
   #   image: 'codefresh/cfstep-helm:2.9.1'
   #   title: Deploying Helm chart
