@@ -10,7 +10,7 @@ RUN pip install --editable .
 
 RUN flask initdb
 
-# Unit testss
+# Unit tests
 # python setup.py test
 
 EXPOSE 5000
