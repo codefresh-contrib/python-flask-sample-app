@@ -1,10 +1,12 @@
 ## MiniTwit an example application written in Python/Flask
 
+I want to do a pull request to test with.
+
 Original source code from https://github.com/pallets/flask/tree/16d83d6bb413bec09a656a659b98d897e7abcc81/examples/minitwit
 
 ## Docker instructions
 
-To create a docker image execute: 
+To create a docker image execute:
 
 `docker build . -t minitwit`
 
@@ -18,7 +20,7 @@ To run unit tests inside the container execute:
 
 ## Original Readme
 
-MiniTwit 
+MiniTwit
 
 because writing todo lists is not fun
 
