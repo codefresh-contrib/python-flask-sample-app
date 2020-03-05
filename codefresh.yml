@@ -10,17 +10,18 @@ steps:
     repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
     revision: '${{CF_REVISION}}'
     stage: prepare
-  MyAppDockerImage:
+  my_python_docker_image:
     title: Building Docker Image
     type: build
     stage: build
-    image_name: my-app-image
+    image_name: my-flask-image
     working_directory: ./
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
     dockerfile: Dockerfile
-  MyUnitTests:
+  my_unit_tests:
     title: Running Unit tests
     stage: test
-    image: '${{MyAppDockerImage}}'
+    image: '${{my_python_docker_image}}'
     commands:
-      - python setup.py test
+      - pip install pytest
+      - pytest

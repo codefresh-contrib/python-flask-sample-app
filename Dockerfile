@@ -1,6 +1,7 @@
-FROM python:3.6.4-alpine3.6
+FROM python:3.8.2-alpine3.11
 
-ENV FLASK_APP=minitwit
+ENV FLASK_APP=flaskr
+ENV FLASK_ENV=development
 
 COPY . /app
 
@@ -8,10 +9,10 @@ WORKDIR /app
 
 RUN pip install --editable .
 
-RUN flask initdb
+RUN flask init-db
 
 # Unit tests
-# python setup.py test
+# RUN pip install pytest && pytest
 
 EXPOSE 5000
 
