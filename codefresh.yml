@@ -1,27 +1,27 @@
 version: '1.0'
 stages:
-  - prepare
-  - build
-  - test
+  - checkout
+  - package
+  - test  
 steps:
   main_clone:
     title: Cloning main repository...
     type: git-clone
     repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
     revision: '${{CF_REVISION}}'
-    stage: prepare
-  my_python_docker_image:
+    stage: checkout
+  MyAppDockerImage:
     title: Building Docker Image
     type: build
-    stage: build
-    image_name: my-flask-image
+    stage: package
+    image_name: my-app-image
     working_directory: ./
-    tag: '${{CF_BRANCH_TAG_NORMALIZED}}'
+    tag: v1.0.1
     dockerfile: Dockerfile
-  my_unit_tests:
+  MyUnitTests:
     title: Running Unit tests
-    stage: test
-    image: '${{my_python_docker_image}}'
-    commands:
+    image: '${{MyAppDockerImage}}'
+    stage: test 
+    commands: 
       - pip install pytest
       - pytest
