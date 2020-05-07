@@ -3,6 +3,7 @@ version: "1.0"
 stages:
   - "checkout"
   - "package"
+  - test
 steps:
   main_clone:
     title: "Cloning repository"
@@ -21,3 +22,10 @@ steps:
     tag: "v1.0.0"
     dockerfile: "Dockerfile"
     stage: "package"
+  RunTests:
+    title: run unit tests
+    image: "${{MyDockerImage}}"
+    stage: test
+    commands:
+      - pip install pytest
+      - pytest
