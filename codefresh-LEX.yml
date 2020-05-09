@@ -39,3 +39,8 @@ steps:
     candidate: "${{MyDockerImage}}"
     image_name: lexhider/my-flask-image
     registry: dockerhub
+    description: |-
+      This pushes stuff do dockerhub.
+      We aren't doing that as part of the default push
+      that is part of the build step.
+
