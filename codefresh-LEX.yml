@@ -33,6 +33,7 @@ steps:
       - pytest
   DoPush:
     title: push image to dockerhub
+    type: push
     stage: upload
     tag: "${{CF_BRANCH}}"
     candidate: "${{MyDockerImage}}"
