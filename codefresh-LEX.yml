@@ -1,9 +1,10 @@
 version: "1.0"
 # Stages can help you organize your steps in stages
 stages:
-  - "checkout"
-  - "package"
+  - checkout
+  - package
   - test
+  - upload
 steps:
   main_clone:
     title: "Cloning repository"
@@ -22,6 +23,7 @@ steps:
     tag: "v1.0.0"
     dockerfile: "Dockerfile"
     stage: "package"
+    disable_push: true
   RunTests:
     title: run unit tests
     image: "${{MyDockerImage}}"
@@ -29,3 +31,10 @@ steps:
     commands:
       - pip install pytest
       - pytest
+  DoPush:
+    title: push image to dockerhub
+    stage: upload
+    tag: "${{CF_BRANCH}}"
+    candidate: "${{MyDockerImage}}"
+    image_name: lexhider/my-flask-image
+    registry: dockerhub
