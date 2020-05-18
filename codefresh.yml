@@ -1,32 +1,48 @@
 version: '1.0'
+stages:
+  - checkout
+  - package
+  - deploy  
 steps:
-  main_clone:
+  clone:
     title: Cloning main repository...
     type: git-clone
-    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
-    revision: '${{CF_REVISION}}'
+    arguments:
+      repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+      revision: '${{CF_REVISION}}'
     stage: checkout
   BuildingDockerImage:
     title: Building Docker Image
     type: build
-    image_name: kostis-codefresh/python-flask-sampleapp
-    working_directory: ./
-    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-    dockerfile: Dockerfile
-  # Requires importing of shared configuration for the private Helm repository
-  StoreChart: 
+    working_directory: ${{clone}}
+    arguments:
+      image_name: my-flask-app
+      tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+      dockerfile: Dockerfile
+    stage: package
+  deploy:
     title: Storing Helm chart
-    image: 'codefresh/cfstep-helm:2.9.1'
-    environment:
-      - ACTION=push
-      - CHART_REF=charts/python
+    type: helm
+    stage: deploy
+    working_directory: ./python-flask-sample-app
+    arguments:
+      action: push
+      chart_name: charts/python
+      helm_version: 3.0.2
+      kube_context: 'mydemoAkscluster@BizSpark Plus'
   DeployMyChart:
-    image: 'codefresh/cfstep-helm:2.9.1'
-    title: Deploying Helm chart
-    environment:
-      - CHART_REF=charts/python
-      - RELEASE_NAME=mypython-chart-prod
-      - KUBE_CONTEXT=myDemoAKSCluster
-      - VALUE_image_pullPolicy=Always
-      - VALUE_image_tag='${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-
+    type: helm
+    stage: deploy
+    working_directory: ./python-flask-sample-app
+    arguments:
+      action: install
+      chart_name: charts/python
+      release_name: my-python-chart
+      helm_version: 3.0.2
+      kube_context: 'mydemoAkscluster@BizSpark Plus'
+      custom_values:
+      - 'buildID=${{CF_BUILD_ID}}'
+      - 'image_pullPolicy=Always'
+      - 'repository=r.cfcr.io/kostis-codefresh/my-flask-app'
+      - 'image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+      - 'image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-default'      
