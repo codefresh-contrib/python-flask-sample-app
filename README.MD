@@ -1,4 +1,4 @@
-# python-flask-sample-app
+# python-flask-sample-app demo
 ## Flaskr an example application written in Python/Flask
 
 ![Flask plus Codefresh](docker-flask-codefresh.jpg)
