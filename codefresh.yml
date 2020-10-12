@@ -43,6 +43,6 @@ steps:
       custom_values:
       - 'buildID=${{CF_BUILD_ID}}'
       - 'image_pullPolicy=Always'
-      - 'repository=r.cfcr.io/kostis-codefresh/my-flask-app'
+      - 'image_repository=r.cfcr.io/kostis-codefresh/my-flask-app'
       - 'image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
       - 'image_pullSecret=codefresh-generated-r.cfcr.io-cfcr-default'      
