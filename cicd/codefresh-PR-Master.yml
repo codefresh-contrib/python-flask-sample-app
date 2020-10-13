@@ -146,7 +146,7 @@ steps:
   wait_for_manual_pr_testing:
     type: pending-approval
     stage: cleanup-pr-test
-    title: After your PR testing, Approve to cleanup the PR test env
+    title: After your PR testing, Cleanup the PR test env. This
     timeout:
       duration: 48  # hours
       finalState: approved
