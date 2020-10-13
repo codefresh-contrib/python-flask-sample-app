@@ -1,0 +1,130 @@
+version: '1.0'
+stages:
+  - checkout
+  - build
+  - test
+  - upload
+  - deploy-int-test
+
+steps:
+
+  main_clone:
+    title: Cloning main repository...
+    stage: checkout
+    type: git-clone
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_REVISION}}'
+
+  flaskr_docker_image:
+    title: Building Flaskr Docker Image
+    stage: build
+    type: build
+    image_name: flaskr
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    dockerfile: Dockerfile
+    disable_push: true
+
+  parallel_tests:
+    type: parallel
+    stage: test
+    fail_fast: false  # Process failures after test report is uploaded
+    steps:
+      linting:
+        title: Running Linting Tests (ignore)
+        image: '${{flaskr_docker_image}}'
+        fail_fast: false
+        commands:
+          - pip install pytest-pylint
+          - pytest --pylint
+      unit_tests:
+        title: Running Unit tests
+        image: '${{flaskr_docker_image}}'
+        commands:
+          - pip install pytest allure-pytest
+          - mkdir -p $CF_VOLUME_PATH/allure-results
+          - pytest --alluredir=$CF_VOLUME_PATH/allure-results
+
+  upload_report:
+    title: Upload Allure Unit Test Report
+    stage: test
+    type: test-reporting
+    fail_fast: true
+    working_directory: '${{CF_VOLUME_PATH}}/'
+    arguments:
+      allure_dir: allure-results
+      bucket_name: '${{TEST_BUCKET_NAME}}'
+      storage_integration: '${{TEST_STORAGE_NAME}}'
+      branch: '${{CF_BRANCH}}'
+      clear_test_report: true
+
+  check_for_test_failures:
+    title: Checking test results for failures
+    stage: test
+    type: freestyle
+    arguments:
+      image: '${{flaskr_docker_image}}'  # Re-use to be frugal!
+      commands:
+        - 'echo Result of Linting was: ${{steps.linting.result}}'
+        - 'echo Result of Unit Testing was: ${{steps.unit_tests.result}}'
+        - 'exit 1'
+    when:
+      steps:
+        any:
+#           - name: linting  # Let's give the devs some time to fix all their linting errors
+#             on:
+#               - failure
+          - name: unit_tests
+            on:
+              - failure
+
+  store_docker_image:
+    title: Pushing Flaskr image to Docker Registry
+    stage: upload
+    type: push
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    candidate: '${{flaskr_docker_image}}'
+    image_name: '${{IMAGE_PREFIX}}flaskr'
+    registry: '${{REGISTRY_NAME}}'
+
+  store_helm_chart:
+    title: Pushing Helm chart to Codefresh repo
+    stage: upload
+    type: helm
+    working_directory: '${{main_clone}}'  # Req'd field (not well documented)
+    arguments:
+      action: push
+      chart_name: charts/python
+      helm_version: '${{HELM_VER}}'
+      kube_context: '${{KUBE_CTX_TEST_INT}}'
+
+  deploy_int_test_helm_release:
+    title: Deploying Helm Chart to temp Release for PR Testing
+    stage: deploy-int-test
+    type: helm
+    arguments:
+      action: install
+      chart_name: python
+      release_name: 'flaskr-test-int'
+      helm_version: '${{HELM_VER}}'
+      kube_context: '${{KUBE_CTX_TEST_INT}}'
+      namespace: '${{KUBE_NS_TEST_INT}}'
+      cmd_ps: '--debug'  # Print rendered templates, etc.
+      custom_values:
+        - 'buildID=${{CF_BUILD_ID}}'
+        - 'image_pullPolicy=Always'
+        - 'image_repository=${{REGISTRY_URL}}/${{IMAGE_PREFIX}}flaskr'
+        - 'image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+        - 'image_pullSecret=dockerhub' # Create this when you create the ns
+
+  test_helm_release:
+    title: Running Helm Tests on the temp Release
+    stage: deploy-int-test
+    type: freestyle
+    arguments:
+      image: 'codefresh/kube-helm:${{HELM_VER}}'
+      commands:
+        - echo Changing to context "$KUBE_CTX_TEST_INT" and ns "$KUBE_NS_TEST_INT"
+        - kubectl config use-context $KUBE_CTX_TEST_INT
+        - kubectl config set-context --current --namespace=$KUBE_NS_TEST_INT
+        - echo Testing Helm Release flaskr-test-int
+        - helm test flaskr-test-int
