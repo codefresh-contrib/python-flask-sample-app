@@ -1,0 +1,48 @@
+version: "1.0"
+stages:
+  - "checkout"
+  - "build"
+  - "test"
+  - "verify"
+
+steps:
+
+  main_clone:
+    title: Cloning main repository...
+    type: git-clone
+    stage: checkout
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_REVISION}}'
+
+  flaskr_docker_image:
+    title: Building Flaskr Docker Image
+    type: build
+    stage: build
+    image_name: flaskr
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    dockerfile: Dockerfile
+    disable_push: true
+
+  parallel_tests:
+    type: parallel
+    stage: test
+    success_criteria:
+      steps:
+        ignore:
+          - linting  # Let's give the devs some time to fix all their linting errors
+    steps:
+      linting:
+        title: Running Linting Tests (ignore)
+        image: '${{flaskr_docker_image}}'
+        fail_fast: false
+        commands:
+          - pip install pytest-pylint
+          - pytest --pylint
+      unit_tests:
+        title: Running Unit tests
+        image: '${{flaskr_docker_image}}'
+        commands:
+          - pip install pytest allure-pytest
+          - mkdir -p $CF_VOLUME_PATH/allure-results
+          - pytest --alluredir=$CF_VOLUME_PATH/allure-results
+          - ls -la $CF_VOLUME_PATH/allure-results
