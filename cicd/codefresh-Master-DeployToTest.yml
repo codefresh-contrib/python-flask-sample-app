@@ -114,7 +114,7 @@ steps:
         - 'image_pullPolicy=Always'
         - 'image_repository=${{REGISTRY_URL}}/${{IMAGE_PREFIX}}flaskr'
         - 'image_tag=${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-        - 'image_pullSecret=dockerhub' # Create this when you create the ns
+        - 'image_pullSecret=${{IMAGE_PULL_SECRET}}' # Create this when you create the ns
 
   test_helm_release:
     title: Running Helm Tests on the temp Release
