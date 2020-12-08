@@ -1,5 +1,5 @@
 FROM python:3.8.2-alpine3.11
-
+LABEL description="An example Python application"
 ENV FLASK_APP=flaskr
 ENV FLASK_ENV=development
 
