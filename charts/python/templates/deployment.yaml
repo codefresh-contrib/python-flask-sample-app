@@ -14,7 +14,6 @@ spec:
   template:
     metadata:
       annotations:
-        buildID: {{ .Values.buildID }}
       labels:
         draft: {{ default "draft-app" .Values.draft }}
         app: {{ template "fullname" . }}
