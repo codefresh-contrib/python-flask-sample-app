@@ -18,7 +18,5 @@ RUN flask init-db
 
 EXPOSE 5000
 
+# Run flask
 CMD [ "flask", "run", "--host=0.0.0.0" ]
-
-
-
