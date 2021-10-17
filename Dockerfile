@@ -3,6 +3,7 @@ FROM python:3.8.2-alpine3.11
 ENV FLASK_APP=flaskr
 ENV FLASK_ENV=development
 
+# Copy contents of the current directory to /app in the container
 COPY . /app
 
 WORKDIR /app
