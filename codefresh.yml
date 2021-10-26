@@ -14,7 +14,7 @@ steps:
     title: Building Docker Image
     type: build
     stage: package
-    image_name: my-app-image
+    image_name: osergiyuk/python-sample-app
     working_directory: ./
     tag: v1.0.1
     dockerfile: Dockerfile
@@ -26,3 +26,4 @@ steps:
     commands: 
       - pip install pytest
       - pytest
+  Deployment:
