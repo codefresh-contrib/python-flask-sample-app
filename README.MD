@@ -1,4 +1,4 @@
-## Flaskr an example application written in Python/Flask
+## Flaskr an example application written in Python/Flask (Staging)
 
 ![Flask plus Codefresh](docker-flask-codefresh.jpg)
 
