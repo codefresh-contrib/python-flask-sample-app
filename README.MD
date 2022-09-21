@@ -1,5 +1,5 @@
 ## Flaskr an example application written in Python/Flask (Staging)
-
+## STAGINg
 ![Flask plus Codefresh](docker-flask-codefresh.jpg)
 
 Original source code from https://github.com/pallets/flask/tree/master/examples/tutorial
