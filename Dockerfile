@@ -9,7 +9,7 @@ WORKDIR /app
 
 # RUN pip install --editable .
 
-RUN flask init-db
+# RUN flask init-db
 
 # Unit tests
 # RUN pip install pytest && pytest
