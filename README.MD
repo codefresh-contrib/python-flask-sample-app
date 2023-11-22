@@ -28,4 +28,4 @@ There is also a [codefresh.yml](codefresh.yml) for easy usage with the [Codefres
 
 More details can be found in [Codefresh documentation](https://codefresh.io/docs/docs/getting-started/create-a-basic-pipeline/)
 
-#Edit 1
+#Edit 2
