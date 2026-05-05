@@ -1,0 +1,26 @@
+- name: Provision JIT Test VM in GCP
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create e2-micro instance in us-west1
+      google.cloud.gcp_compute_instance:
+        name: "flaskr-test-vm-{{ run_id }}"
+        machine_type: "e2-micro"
+        zone: "us-west1-b"
+        project: "{{ gcp_project }}"
+        auth_kind: "application"
+        disks:
+          - auto_delete: true
+            boot: true
+            initialize_params:
+              disk_size_gb: 30
+              disk_type: "pd-standard"
+              source_image: "projects/debian-cloud/global/images/family/debian-12"
+        network_interfaces:
+          - network: "global/networks/default"
+            # Grants an ephemeral external IP for outbound internet access (e.g., cloning GitHub).
+            # Ingress SSH is still strictly protected by the IAP-only firewall rule.
+            access_configs:
+              - name: 'External NAT'
+                type: 'ONE_TO_ONE_NAT'
+        state: present

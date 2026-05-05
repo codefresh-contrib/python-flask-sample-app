@@ -1,0 +1,11 @@
+- name: Deprovision JIT Test VM in GCP
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Delete e2-micro instance in us-west1
+      google.cloud.gcp_compute_instance:
+        name: "flaskr-test-vm-{{ run_id }}"
+        zone: "us-west1-b"
+        project: "{{ gcp_project }}"
+        auth_kind: "application"
+        state: absent

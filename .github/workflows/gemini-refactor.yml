@@ -1,0 +1,52 @@
+name: Gemini Continuous Improvement
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli
+
+      - name: Run Agentic Refactoring
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          GEMINI_TELEMETRY_ENABLED: 'false'
+          GEMINI_MODEL: 'gemini-3.1-flash-lite-preview'
+        run: |
+          gemini -y -p "Review the codebase and implement all required changes as specified in the GEMINI.md file." > pr_details.txt
+          
+          EXTRACTED_TITLE=$(grep "TITLE:" pr_details.txt | sed 's/TITLE: //')
+          EXTRACTED_BODY=$(grep -A 50 "BODY:" pr_details.txt | sed 's/BODY: //')
+
+          echo "PR_TITLE=$EXTRACTED_TITLE" >> $GITHUB_ENV
+          echo "PR_BODY<<EOF" >> $GITHUB_ENV
+          echo "$EXTRACTED_BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(ai): continuous codebase improvement"
+          title: ${{ env.PR_TITLE }}
+          body: ${{ env.PR_BODY }}
+          branch: "gemini-refactor-${{ github.run_id }}"
+          delete-branch: true

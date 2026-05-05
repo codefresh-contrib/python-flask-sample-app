@@ -1,0 +1,99 @@
+name: PRi JIT Test Gate & Auto-Merge
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  test-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install Ansible & GCP Dependencies
+        run: |
+          pip install ansible requests google-auth
+          ansible-galaxy collection install google.cloud
+
+      - name: Provision JIT VM via Ansible
+        run: |
+          ansible-playbook ansible/create_vm.yml \
+            -e "run_id=${{ github.run_id }}" \
+            -e "gcp_project=${{ secrets.GCP_PROJECT_ID }}"
+
+      - name: Wait for SSH to initialize
+        run: sleep 30
+
+      - name: Prime SSH Keys for Ansible
+        # Ansible's google.cloud.iap connection plugin works best when SSH keys 
+        # are already propagated to OS Login/Metadata. Running a dummy gcloud 
+        # command forces the key generation and propagation seamlessly.
+        run: |
+          gcloud compute ssh "flaskr-test-vm-${{ github.run_id }}" \
+            --zone="us-west1-b" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            --tunnel-through-iap \
+            --command="echo 'SSH keys primed'"
+
+      - name: Run Tests via Ansible IAP
+        id: run_tests
+        # We target the specific VM by passing it directly to the Ansible inventory flag (-i)
+        run: |
+          ansible-playbook -i "flaskr-test-vm-${{ github.run_id }}," ansible/run_tests.yml \
+            -e "gcp_project=${{ secrets.GCP_PROJECT_ID }}" \
+            -e "repo_url=${{ vars.REPO_URL }}" \
+            -e "head_ref=${{ github.head_ref }}"
+            
+      - name: Read Test Output
+        if: always() # Executes even if Ansible fails due to test failures
+        run: |
+          if [ -f "./test_output.txt" ]; then
+            echo "TEST_OUTPUT<<EOF" >> $GITHUB_ENV
+            cat ./test_output.txt >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "TEST_OUTPUT=No test output generated. Infrastructure or Setup failure." >> $GITHUB_ENV
+          fi
+
+      - name: Post Test Results to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = process.env.TEST_OUTPUT;
+            const status = '${{ steps.run_tests.outcome }}' === 'success' ? '✅ PASSED' : '❌ FAILED';
+            const body = `### Test Gate Results: ${status}\n\n\`\`\`text\n${output}\n\`\`\``;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })
+
+      - name: Auto-Merge PR
+        if: success()
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merge-method: squash
+
+      - name: Deprovision JIT VM
+        if: always()
+        run: |
+          ansible-playbook ansible/delete_vm.yml \
+            -e "run_id=${{ github.run_id }}" \
+            -e "gcp_project=${{ secrets.GCP_PROJECT_ID }}"

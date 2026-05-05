@@ -1,0 +1,45 @@
+- name: Run Flaskr Tests via IAP Tunnel
+  hosts: all
+  gather_facts: true
+  vars:
+    ansible_connection: google.cloud.iap
+    ansible_gcp_project: "{{ gcp_project }}"
+    ansible_gcp_zone: "us-west1-b"
+  tasks:
+    - name: Install system dependencies
+      become: true
+      apt:
+        name: ['python3-pip', 'python3-venv', 'git']
+        state: present
+        update_cache: yes
+
+    - name: Clone repository to /tmp/app
+      git:
+        repo: "{{ repo_url }}"
+        dest: "/tmp/app"
+        version: "{{ head_ref }}"
+        force: yes
+
+    - name: Execute pytest inside virtual environment
+      shell: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt pytest
+        pip install .
+        pytest tests/ -v
+      args:
+        chdir: "/tmp/app"
+        executable: /bin/bash
+      register: test_results
+      ignore_errors: yes # Prevents Ansible from immediately halting on test failure
+
+    - name: Save test output locally to GitHub Actions runner
+      delegate_to: localhost
+      copy:
+        content: "{{ test_results.stdout }}\n{{ test_results.stderr }}"
+        dest: "./test_output.txt"
+
+    - name: Fail the playbook if tests did not pass
+      fail:
+        msg: "Unit tests failed. Review the output."
+      when: test_results.rc != 0
